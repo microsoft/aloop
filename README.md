@@ -152,16 +152,30 @@ Specific guidance, tone, focus areas.
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────┐
-│           Azure Container Apps                    │
-│  ┌──────────────────────────────────────────┐    │
-│  │  Read steering → Plan → Execute → Score  │    │
-│  │       ↑         keep best, discard rest  │    │
-│  │       └──────── sleep N min ─────────┘   │    │
-│  └──────────────────────────────────────────┘    │
-│  Azure Blob Storage        Azure OpenAI          │
-└──────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+  user("👤 You")
+  blob[("🗄️ Azure Blob Storage")]
+  openai["🧠 Azure OpenAI"]
+
+  subgraph aca ["🔁 Azure Container Apps"]
+    direction LR
+    read["📖 Read steering"] --> plan["📝 Plan"] --> exec["⚡ Execute"] --> eval["📊 Evaluate"]
+    eval --> gate{"✅ Improved?"}
+    gate -- "Yes: keep" --> save["💾 Save best"]
+    gate -- "No: discard" --> wait["⏳ Sleep"]
+    save --> wait --> read
+  end
+
+  user -. "✏️ Update steering.md anytime" .-> blob
+  blob -- "steering.md read each iteration" --> read
+  exec <--> openai
+  save --> blob
+
+  style aca fill:#f0f4ff,stroke:#4a6fa5,color:#1a2a44,stroke-width:2px
+  style blob fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+  style openai fill:#fff3e0,stroke:#e65100,color:#bf360c
+  style user fill:#fce4ec,stroke:#c62828,color:#b71c1c
 ```
 
 - **Compute**: Azure Container Apps (single replica, 1 CPU / 2GB)
