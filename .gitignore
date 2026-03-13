@@ -1,0 +1,8 @@
+# aloop workspace
+workspace/
+__pycache__/
+*.pyc
+.env
+.azure/
+.azure-cli/
+output/

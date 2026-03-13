@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: aloop
+metadata:
+  template: aloop@0.1.0
+services:
+  agent:
+    project: ./src/agent
+    host: containerapp
+    language: python
+    docker:
+      path: ./Dockerfile
+      context: .

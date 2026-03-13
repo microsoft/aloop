@@ -1,0 +1,9 @@
+{
+  "managedIdentity": "id-",
+  "storageAccount": "st",
+  "openAi": "oai-",
+  "containerApp": "ca-",
+  "containerAppsEnvironment": "cae-",
+  "containerRegistry": "cr",
+  "logAnalytics": "log-"
+}

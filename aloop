@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+# aloop — Simple CLI for your AI agent
+# Usage: aloop start      Deploy and start the agent
+#        aloop stop       Stop the agent gracefully
+#        aloop steer      Upload steering.md changes
+#        aloop status     Check progress (default)
+#        aloop download   Download finished artifacts
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+COMMAND="${1:-status}"
+
+C='\033[36m'   # cyan
+G='\033[32m'   # green
+Y='\033[33m'   # yellow
+R='\033[31m'   # red
+D='\033[90m'   # dim
+N='\033[0m'    # reset
+
+check_prereqs() {
+    local missing=0
+    if ! command -v azd &>/dev/null; then
+        echo -e "  ${R}Azure Developer CLI (azd) not found.${N}"
+        echo -e "  ${D}Install: https://aka.ms/azd-install${N}"
+        missing=1
+    fi
+    if ! command -v az &>/dev/null; then
+        echo -e "  ${R}Azure CLI (az) not found.${N}"
+        echo -e "  ${D}Install: https://aka.ms/install-azure-cli${N}"
+        missing=1
+    fi
+    if [ $missing -eq 1 ]; then
+        echo ""
+        echo -e "  ${Y}Need an Azure account? https://azure.microsoft.com/free${N}"
+        exit 1
+    fi
+}
+
+get_store() {
+    SA=$(azd env get-value AZURE_STORAGE_ACCOUNT_NAME 2>/dev/null || true)
+    if [ -z "$SA" ]; then
+        echo -e "  ${R}No Azure environment found. Run 'aloop start' first.${N}"
+        exit 1
+    fi
+}
+
+upload_blob() {
+    az storage blob upload --account-name "$SA" -c agent-workspace -n "$1" --file "$2" --overwrite --auth-mode login --only-show-errors 2>/dev/null || \
+    az storage blob upload --account-name "$SA" -c agent-workspace -n "$1" --file "$2" --overwrite --auth-mode key --only-show-errors 2>/dev/null
+}
+
+download_blob() {
+    az storage blob download --account-name "$SA" -c agent-workspace -n "$1" --file "$2" --overwrite --auth-mode login --only-show-errors 2>/dev/null || \
+    az storage blob download --account-name "$SA" -c agent-workspace -n "$1" --file "$2" --overwrite --auth-mode key --only-show-errors 2>/dev/null
+}
+
+check_prereqs
+
+case "$COMMAND" in
+
+start)
+    STEERING="$ROOT/steering.md"
+    if [ ! -f "$STEERING" ]; then
+        LOOPDIR="$ROOT/loops"
+        if [ -d "$LOOPDIR" ]; then
+            echo ""
+            echo -e "  ${C}Pick a loop type:${N}"
+            echo ""
+            DIRS=()
+            i=1
+            for d in "$LOOPDIR"/*/; do
+                [ -d "$d" ] || continue
+                NAME=$(basename "$d")
+                LABEL="$NAME"
+                if [ -f "$d/demo.md" ]; then
+                    LABEL="$NAME ${D}(demo available)${N}"
+                fi
+                DIRS+=("$d")
+                echo -e "    $i. $LABEL"
+                ((i++))
+            done
+            echo ""
+            read -rp "  Enter number (or press Enter for 1): " PICK
+            PICK=${PICK:-1}
+            CHOSEN="${DIRS[$((PICK-1))]}"
+            CNAME=$(basename "$CHOSEN")
+
+            if [ -f "$CHOSEN/steering.md" ]; then
+                # Has a generic template — check for placeholders
+                if grep -q '\[.*\]' "$CHOSEN/steering.md" 2>/dev/null && [ -f "$CHOSEN/demo.md" ]; then
+                    echo ""
+                    echo -e "  ${Y}This template has [PLACEHOLDER] fields you'll need to fill in.${N}"
+                    read -rp "  Try the ready-to-run demo instead? [Y/n]: " USE_DEMO
+                    USE_DEMO=${USE_DEMO:-Y}
+                    if [[ "$USE_DEMO" =~ ^[Yy] ]]; then
+                        cp "$CHOSEN/demo.md" "$STEERING"
+                        echo -e "  ${G}Created steering.md from '$CNAME' demo. Review it, then run 'aloop start' again.${N}"
+                    else
+                        cp "$CHOSEN/steering.md" "$STEERING"
+                        echo -e "  ${G}Created steering.md from '$CNAME' template. Fill in the [PLACEHOLDERS], then run 'aloop start' again.${N}"
+                    fi
+                else
+                    cp "$CHOSEN/steering.md" "$STEERING"
+                    echo -e "  ${G}Created steering.md from '$CNAME'. Edit it, then run 'aloop start' again.${N}"
+                fi
+            elif [ -f "$CHOSEN/demo.md" ]; then
+                cp "$CHOSEN/demo.md" "$STEERING"
+                echo -e "  ${G}Created steering.md from '$CNAME' demo. Review it, then run 'aloop start' again.${N}"
+            else
+                echo -e "  ${R}No steering template found for '$CNAME'.${N}"
+                exit 1
+            fi
+            echo ""
+            exit 0
+        else
+            echo -e "  ${R}No steering.md found. Create one with your goal and instructions.${N}"
+            exit 1
+        fi
+    fi
+
+    # Reset abort flag if set from a previous stop
+    if grep -q "abort: true" "$STEERING" 2>/dev/null; then
+        sed -i'' -e 's/abort: true/abort: false/' "$STEERING"
+    fi
+
+    echo ""
+    echo -e "  ${C}Deploying aloop to Azure...${N}"
+    echo ""
+    azd up
+
+    get_store
+    upload_blob "steering.md" "$STEERING" >/dev/null
+    echo ""
+    echo -e "  ${G}Agent is running! Check progress with: aloop${N}"
+    echo ""
+    ;;
+
+stop)
+    get_store
+    STEERING="$ROOT/steering.md"
+    if [ ! -f "$STEERING" ]; then
+        echo -e "  ${R}No steering.md found.${N}"
+        exit 1
+    fi
+
+    if grep -q "abort: false" "$STEERING" 2>/dev/null; then
+        sed -i'' -e 's/abort: false/abort: true/' "$STEERING"
+    elif ! grep -q "abort: true" "$STEERING" 2>/dev/null; then
+        echo "" >> "$STEERING"
+        echo "abort: true" >> "$STEERING"
+    fi
+
+    upload_blob "steering.md" "$STEERING" >/dev/null
+    echo ""
+    echo -e "  ${G}Agent will stop on its next iteration.${N}"
+    echo -e "  ${D}Run 'aloop start' to restart later.${N}"
+    echo ""
+    ;;
+
+steer)
+    get_store
+    STEERING="$ROOT/steering.md"
+    if [ ! -f "$STEERING" ]; then
+        echo -e "  ${R}No steering.md found. Create one first.${N}"
+        exit 1
+    fi
+    upload_blob "steering.md" "$STEERING" >/dev/null
+    echo ""
+    echo -e "  ${G}Steering updated. Agent picks up changes next iteration.${N}"
+    echo ""
+    ;;
+
+download)
+    get_store
+    OUTDIR="$ROOT/output"
+    mkdir -p "$OUTDIR"
+
+    BLOBS=$(az storage blob list --account-name "$SA" -c agent-workspace --prefix "artifacts/" --auth-mode key --query "[].name" -o tsv --only-show-errors 2>/dev/null || true)
+    if [ -z "$BLOBS" ]; then
+        echo ""
+        echo -e "  ${Y}No artifacts yet. The agent may still be working.${N}"
+        echo ""
+        exit 0
+    fi
+
+    echo ""
+    while IFS= read -r blob; do
+        blob=$(echo "$blob" | tr -d '[:space:]')
+        [ -z "$blob" ] && continue
+        FNAME=$(basename "$blob")
+        download_blob "$blob" "$OUTDIR/$FNAME" >/dev/null
+        echo -e "  ${G}$FNAME${N}"
+    done <<< "$BLOBS"
+    echo ""
+    echo -e "  ${C}Saved to: $OUTDIR${N}"
+    echo ""
+    ;;
+
+status)
+    get_store
+    TMP=$(mktemp)
+    download_blob "progress.json" "$TMP" >/dev/null 2>&1 || true
+
+    if [ ! -s "$TMP" ]; then
+        echo ""
+        echo -e "  ${Y}No progress yet. Agent may still be starting up.${N}"
+        echo ""
+        exit 0
+    fi
+
+    STATUS=$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(d.get('status','?'))" 2>/dev/null || echo "?")
+    ITERS=$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(d.get('total_iterations','?'))" 2>/dev/null || echo "?")
+    BEST=$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(d.get('best_score','?'))" 2>/dev/null || echo "?")
+    BEST_IT=$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(d.get('best_iteration','?'))" 2>/dev/null || echo "?")
+    SCORES=$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(' -> '.join(str(s) for s in d.get('scores',[])))" 2>/dev/null || echo "?")
+    UPDATED=$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(d.get('last_updated','?'))" 2>/dev/null || echo "?")
+
+    SC="$Y"
+    [ "$STATUS" = "RUNNING" ]   && SC="$G"
+    [ "$STATUS" = "COMPLETED" ] && SC="$C"
+
+    echo ""
+    echo -e "  ${C}aloop${N}"
+    echo -e "  ${C}-----${N}"
+    echo -e "  Status:     ${SC}${STATUS}${N}"
+    echo -e "  Iterations: $ITERS"
+    echo -e "  Best Score: $BEST/100 (iteration $BEST_IT)"
+    echo -e "  Scores:     $SCORES"
+    echo -e "  Updated:    $UPDATED"
+    echo ""
+    rm -f "$TMP"
+    ;;
+
+*)
+    echo ""
+    echo -e "  ${C}aloop — Run your AI agent${N}"
+    echo ""
+    echo "  Usage:"
+    echo "    aloop start      Deploy and start the agent"
+    echo "    aloop stop       Stop the agent gracefully"
+    echo "    aloop steer      Upload steering changes"
+    echo "    aloop status     Check progress (default)"
+    echo "    aloop download   Download finished artifacts"
+    echo ""
+    echo "  Quick start:"
+    echo "    1. aloop start   (pick a loop type, deploys to Azure)"
+    echo "    2. Edit steering.md with your goal"
+    echo "    3. aloop steer   (sends changes to the agent)"
+    echo "    4. aloop         (check how it's doing)"
+    echo "    5. aloop download (grab the finished work)"
+    echo ""
+    echo "  Loop types: blog-writer, deep-research, spec-writer, slide-deck,"
+    echo "  sdk-review, sample-builder, changelog-writer, data-analysis,"
+    echo "  doc-writer, strategic-planning"
+    echo ""
+    ;;
+esac
