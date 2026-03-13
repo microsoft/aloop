@@ -153,10 +153,8 @@ Specific guidance, tone, focus areas.
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
   user("👤 You")
-  blob[("🗄️ Azure Blob Storage")]
-  openai["🧠 Azure OpenAI"]
 
   subgraph aca ["🔁 Azure Container Apps"]
     direction LR
@@ -167,9 +165,12 @@ flowchart LR
     save --> wait --> read
   end
 
+  blob[("🗄️ Azure Blob Storage")]
+  openai["🧠 Azure OpenAI"]
+
   user -. "✏️ Update steering.md anytime" .-> blob
-  blob -- "steering.md read each iteration" --> read
-  exec <--> openai
+  blob -- "read each iteration" --> read
+  aca <--> openai
   save --> blob
 
   style aca fill:#f0f4ff,stroke:#4a6fa5,color:#1a2a44,stroke-width:2px
