@@ -11,7 +11,7 @@ You don't babysit it. You don't re-prompt. You walk away and let iteration do wh
 ## Quick Start
 
 ```bash
-git clone https://github.com/Azure-Samples/aloop
+git clone https://github.com/microsoft/aloop
 cd aloop
 aloop start
 ```

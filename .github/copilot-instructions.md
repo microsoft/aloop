@@ -5,7 +5,7 @@
 - **Name**: aloop (always lowercase, never "LoopAgent", "loop-agent", or "Aloop")
 - **What it is**: An autonomous AI agent that reads plain-text instructions, iteratively improves its work, and runs unattended in the cloud
 - **Tagline**: Describe what you want in plain text. An AI agent relentlessly refines it overnight. You wake up to the finished version.
-- **Repo**: `Azure-Samples/aloop`
+- **Repo**: `microsoft/aloop`
 - **License**: MIT
 
 ## Architecture

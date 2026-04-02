@@ -98,12 +98,12 @@ Your time is the expensive resource. Five minutes writing instructions buys you 
 ## Try It
 
 ```bash
-git clone https://github.com/Azure-Samples/aloop
+git clone https://github.com/microsoft/aloop
 cd aloop
 aloop start
 ```
 
-[View the repo on GitHub →](https://github.com/Azure-Samples/aloop)
+[View the repo on GitHub →](https://github.com/microsoft/aloop)
 
 The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys the infrastructure, and starts the agent. Edit `steering.md` with your own goal and run `aloop steer` whenever you want to change direction.
 
