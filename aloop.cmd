@@ -6,11 +6,38 @@ REM        aloop stop       Stop the agent gracefully
 REM        aloop steer      Upload steering.md changes
 REM        aloop status     Check progress (default)
 REM        aloop download   Download finished artifacts
+REM        --account EMAIL  Switch Azure login before running command
 
 set "ROOT=%~dp0"
 set "ROOT=%ROOT:~0,-1%"
-set "COMMAND=%~1"
-if "%COMMAND%"=="" set "COMMAND=status"
+set "ACCOUNT="
+set "COMMAND="
+
+REM === Parse arguments — extract --account and command ===
+:parse_args
+if "%~1"=="" goto :done_args
+if /i "%~1"=="--account" (
+    set "ACCOUNT=%~2"
+    shift
+    shift
+    goto :parse_args
+)
+REM Check for --account=value format
+set "_ARG=%~1"
+echo !_ARG! | findstr /b /c:"--account=" >nul 2>&1
+if not errorlevel 1 (
+    set "ACCOUNT=!_ARG:--account=!"
+    shift
+    goto :parse_args
+)
+if not defined COMMAND (
+    set "COMMAND=%~1"
+)
+shift
+goto :parse_args
+
+:done_args
+if not defined COMMAND set "COMMAND=status"
 
 REM === Check prerequisites ===
 set "MISSING=0"
@@ -30,6 +57,18 @@ if "%MISSING%"=="1" (
     echo.
     echo   Need an Azure account? https://azure.microsoft.com/free
     exit /b 1
+)
+
+REM === Switch account if requested ===
+if defined ACCOUNT (
+    echo.
+    echo   Switching to account: %ACCOUNT%
+    echo   Sign in as %ACCOUNT% in the browser window that opens.
+    az logout >nul 2>&1
+    az login
+    azd auth login >nul 2>&1
+    echo   Logged in.
+    echo.
 )
 
 REM === Route command ===
@@ -264,6 +303,9 @@ echo     aloop stop       Stop the agent gracefully
 echo     aloop steer      Upload steering changes
 echo     aloop status     Check progress (default)
 echo     aloop download   Download finished artifacts
+echo.
+echo   Options:
+echo     --account EMAIL  Switch Azure login (e.g. aloop start --account user@live.com)
 echo.
 echo   Quick start:
 echo     1. aloop start   (pick a loop type, deploys to Azure)
