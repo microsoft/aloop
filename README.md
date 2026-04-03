@@ -17,9 +17,15 @@ cd aloop
 ./aloop start     # pick a loop type and start the agent
 ```
 
-The CLI walks you through setup — `up` deploys infrastructure, `start` picks a loop type, offers a ready-to-run demo, and starts the agent. If you skip `up`, `start` will deploy automatically.
+**PowerShell:**
+```powershell
+git clone https://github.com/microsoft/aloop
+cd aloop
+.\aloop.ps1 up        # deploy infrastructure to Azure
+.\aloop.ps1 start     # pick a loop type and start the agent
+```
 
-> **Windows users**: Use `.\aloop.ps1 start` in **PowerShell**, `aloop start` in **cmd**, or `./aloop start` in **Git Bash** / **WSL**.
+The CLI walks you through setup — `up` deploys infrastructure, `start` picks a loop type, offers a ready-to-run demo, and starts the agent. If you skip `up`, `start` will deploy automatically.
 
 ### Prerequisites
 
@@ -52,6 +58,7 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 
 ## CLI Commands
 
+Bash / Git Bash / WSL:
 ```bash
 # Infrastructure
 ./aloop up         # deploy infrastructure to Azure
@@ -66,6 +73,18 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 
 # Account
 ./aloop login      # switch Azure account (e.g. ./aloop login user@live.com)
+```
+
+PowerShell:
+```powershell
+.\aloop.ps1 up         # deploy infrastructure to Azure
+.\aloop.ps1 down       # tear down all Azure resources
+.\aloop.ps1 start      # pick a loop type and start the agent
+.\aloop.ps1 stop       # graceful shutdown
+.\aloop.ps1 steer      # upload revised instructions
+.\aloop.ps1 status     # check progress (default command)
+.\aloop.ps1 download   # pull finished artifacts to ./output/
+.\aloop.ps1 login      # switch Azure account
 ```
 
 Here's what `aloop` looks like when you check on a running loop:
