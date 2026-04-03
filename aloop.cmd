@@ -50,17 +50,28 @@ goto cmd_help
 REM ──────────────────────────────────────────────
 :cmd_login
 REM ──────────────────────────────────────────────
-echo.
+REM Accept: aloop login user@example.com OR aloop login --account user@example.com
+set "LOGIN_ACCOUNT="
 if defined ARG2 (
-    echo   Switching to account: %ARG2%
-    echo   Sign in as %ARG2% in the browser window that opens.
+    if "%ARG2%"=="--account" (
+        set "LOGIN_ACCOUNT=%~3"
+    ) else (
+        set "LOGIN_ACCOUNT=%ARG2%"
+    )
+)
+echo.
+if defined LOGIN_ACCOUNT (
+    echo   Switching to account: %LOGIN_ACCOUNT%
+    echo   Sign in as %LOGIN_ACCOUNT% in the browser window that opens.
 ) else (
     echo   Logging into Azure...
+    echo   Sign in with the correct account in the browser window that opens.
 )
 az logout >nul 2>&1
-az login
+call az login
 azd auth login >nul 2>&1
-echo   Logged in. Run 'aloop up' to deploy infrastructure.
+echo.
+echo   Logged in. Run '.\aloop.cmd start' to begin.
 echo.
 exit /b 0
 

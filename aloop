@@ -71,21 +71,22 @@ check_prereqs
 case "$COMMAND" in
 
 login)
+    # Accept: aloop login user@example.com OR aloop login --account user@example.com
     ACCOUNT="${2:-}"
+    [ "$ACCOUNT" = "--account" ] && ACCOUNT="${3:-}"
+    echo ""
     if [ -z "$ACCOUNT" ]; then
-        echo ""
         echo -e "  ${C}Logging into Azure...${N}"
-        az logout 2>/dev/null || true
-        az login
+        echo -e "  ${D}Sign in with the correct account in the browser window that opens.${N}"
     else
-        echo ""
         echo -e "  ${C}Switching to account: ${ACCOUNT}${N}"
         echo -e "  ${D}Sign in as ${ACCOUNT} in the browser window that opens.${N}"
-        az logout 2>/dev/null || true
-        az login
     fi
+    az logout 2>/dev/null || true
+    az login
     azd auth login 2>/dev/null || true
-    echo -e "  ${G}Logged in. Run './aloop up' to deploy infrastructure.${N}"
+    echo ""
+    echo -e "  ${G}Logged in. Run './aloop start' to begin.${N}"
     echo ""
     ;;
 
