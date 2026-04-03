@@ -174,9 +174,10 @@ if not defined SA (
 
 call :get_store
 if errorlevel 1 exit /b 1
+echo   Uploading steering.md...
 call :upload_blob "steering.md" "%STEERING%"
 echo.
-echo   Agent is running! Check progress with: aloop status
+echo   Agent is running! Check progress with: aloop.cmd status
 echo.
 exit /b 0
 
@@ -406,15 +407,15 @@ if not defined SA (
 exit /b 0
 
 :upload_blob
-az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors >nul 2>&1
+az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
 if errorlevel 1 (
-    az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors >nul 2>&1
+    az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
 )
 exit /b 0
 
 :download_blob
-az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors >nul 2>&1
+az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
 if errorlevel 1 (
-    az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors >nul 2>&1
+    az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
 )
 exit /b 0
