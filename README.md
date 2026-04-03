@@ -97,7 +97,7 @@ $ aloop
 
 ## Steer While It Runs
 
-The agent and you work on your own schedules. The agent loops continuously, improving the work. You can check in whenever you want and *steer* — edit the instructions, raise the bar, change direction. Run `aloop steer` and the agent picks up your changes on its next pass. No restart, no redeploy, no lost progress.
+The agent and you work on your own schedules. The agent loops continuously, improving the work. You can check in whenever you want and *steer* — edit the instructions, raise the bar, change direction. Run `./aloop steer` and the agent picks up your changes on its next pass. No restart, no redeploy, no lost progress.
 
 ```
 You (evening):   "Write a blog post about aloop for developers and non-developers"
