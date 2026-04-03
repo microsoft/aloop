@@ -67,9 +67,9 @@ if defined LOGIN_ACCOUNT (
     echo   Logging into Azure...
     echo   Sign in with the correct account in the browser window that opens.
 )
-az logout >nul 2>&1
+call az logout >nul 2>&1
 call az login
-azd auth login >nul 2>&1
+call azd auth login >nul 2>&1
 echo.
 echo   Logged in. Run '.\aloop.cmd start' to begin.
 echo.
@@ -361,7 +361,7 @@ for /f "usebackq delims=" %%V in (`az group show -n "%RG%" --query location -o t
 
 REM Step 1: Delete the resource group
 echo   Deleting resource group: %RG%...
-az group delete -n "%RG%" -y --no-wait >nul 2>&1
+call az group delete -n "%RG%" -y --no-wait >nul 2>&1
 echo   Resource group deletion started.
 
 REM Step 2: Purge soft-deleted OpenAI resource
@@ -369,7 +369,7 @@ if defined OPENAI_NAME if defined LOCATION (
     echo   Waiting for resource group deletion to register...
     ping -n 11 127.0.0.1 >nul 2>&1
     echo   Purging soft-deleted OpenAI resource: !OPENAI_NAME!...
-    az cognitiveservices account purge --name "!OPENAI_NAME!" --location "!LOCATION!" --resource-group "%RG%" --subscription "%SUB%" >nul 2>&1
+    call az cognitiveservices account purge --name "!OPENAI_NAME!" --location "!LOCATION!" --resource-group "%RG%" --subscription "%SUB%" >nul 2>&1
     echo   OpenAI resource purged.
 )
 
@@ -378,8 +378,8 @@ set "AZD_ENV="
 for /f "usebackq delims=" %%V in (`azd env list --query "[?IsDefault].Name" -o tsv 2^>nul`) do set "AZD_ENV=%%V"
 if defined AZD_ENV (
     echo   Removing azd environment: !AZD_ENV!...
-    azd env delete "!AZD_ENV!" --force --purge >nul 2>&1
-    if errorlevel 1 azd env delete "!AZD_ENV!" --force >nul 2>&1
+    call azd env delete "!AZD_ENV!" --force --purge >nul 2>&1
+    if errorlevel 1 call azd env delete "!AZD_ENV!" --force >nul 2>&1
     echo   Environment removed.
 )
 
@@ -431,7 +431,7 @@ REM Set the correct subscription context for az commands
 set "_SUB="
 for /f "usebackq delims=" %%V in (`azd env get-value AZURE_SUBSCRIPTION_ID 2^>nul`) do set "_SUB=%%V"
 if defined _SUB (
-    az account set --subscription "%_SUB%" 2>nul
+    call az account set --subscription "%_SUB%" 2>nul
     if errorlevel 1 (
         echo   Cannot access subscription %_SUB%. Run '.\aloop.cmd login' to sign in with the correct account.
         exit /b 1
@@ -440,15 +440,15 @@ if defined _SUB (
 exit /b 0
 
 :upload_blob
-az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
+call az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
 if not errorlevel 1 exit /b 0
-az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
+call az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
 if not errorlevel 1 exit /b 0
 exit /b 1
 
 :download_blob
-az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
+call az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
 if errorlevel 1 (
-    az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
+    call az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
 )
 exit /b 0
