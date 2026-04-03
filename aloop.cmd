@@ -440,15 +440,15 @@ if defined _SUB (
 exit /b 0
 
 :upload_blob
-call az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
+call az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors >nul 2>nul
 if not errorlevel 1 exit /b 0
-call az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
+call az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors >nul 2>nul
 if not errorlevel 1 exit /b 0
 exit /b 1
 
 :download_blob
-call az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
+call az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors >nul 2>nul
 if errorlevel 1 (
-    call az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
+    call az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors >nul 2>nul
 )
 exit /b 0
