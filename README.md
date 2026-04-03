@@ -309,6 +309,7 @@ azd env select research-loop
 | `azd` or `az` not found | CLI tools not installed | Install [azd](https://aka.ms/azd-install) and [az](https://aka.ms/install-azure-cli) |
 | `does not have permission to create role assignments` | Your account lacks Owner/User Access Administrator on the subscription | Ask a subscription admin for **Owner** role, or use a subscription where you have Owner. See [Architecture](#architecture) for why role assignments are needed (passwordless auth) |
 | Need to deploy under a different Azure account | Logged into the wrong account | Run `./aloop login user@example.com` to switch accounts before deploying |
+| `A soft-deleted resource with this name exists` | A previous failed deployment left a soft-deleted Azure OpenAI resource | Purge it: `az cognitiveservices account purge --name <name> --location <location> --resource-group <rg>`, then retry `./aloop start` |
 
 ## License
 
