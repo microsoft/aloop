@@ -13,10 +13,11 @@ You don't babysit it. You don't re-prompt. You walk away and let iteration do wh
 ```bash
 git clone https://github.com/microsoft/aloop
 cd aloop
-./aloop start
+./aloop up        # deploy infrastructure to Azure
+./aloop start     # pick a loop type and start the agent
 ```
 
-The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys the infrastructure, and starts the agent. No flags, no config files.
+The CLI walks you through setup — `up` deploys infrastructure, `start` picks a loop type, offers a ready-to-run demo, and starts the agent. If you skip `up`, `start` will deploy automatically.
 
 > **Windows users**: Use `aloop start` in **cmd** or `aloop.cmd start` in **PowerShell**. Alternatively, use `./aloop start` in **Git Bash** or **WSL**.
 
@@ -52,13 +53,19 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 ## CLI Commands
 
 ```bash
-./aloop start      # deploy and start the agent
-./aloop steer      # upload revised instructions to running agent
+# Infrastructure
+./aloop up         # deploy infrastructure to Azure
+./aloop down       # tear down all Azure resources
+
+# Loop control
+./aloop start      # pick a loop type and start the agent
 ./aloop stop       # graceful shutdown
+./aloop steer      # upload revised instructions to running agent
 ./aloop status     # check progress (default command)
 ./aloop download   # pull finished artifacts to ./output/
+
+# Account
 ./aloop login      # switch Azure account (e.g. ./aloop login user@live.com)
-./aloop delete     # delete all Azure resources and clean up
 ```
 
 Here's what `aloop` looks like when you check on a running loop:

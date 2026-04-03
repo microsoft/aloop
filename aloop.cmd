@@ -1,12 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 REM aloop — Simple CLI for your AI agent (Windows)
-REM Usage: aloop start      Deploy and start the agent
+REM Usage: aloop up         Deploy infrastructure to Azure
+REM        aloop start      Pick a loop type and start the agent
 REM        aloop stop       Stop the agent gracefully
 REM        aloop steer      Upload steering.md changes
 REM        aloop status     Check progress (default)
 REM        aloop download   Download finished artifacts
-REM        aloop login     Switch Azure account (e.g. aloop login user@live.com)
+REM        aloop down       Tear down all Azure resources
+REM        aloop login      Switch Azure account (e.g. aloop login user@live.com)
 
 set "ROOT=%~dp0"
 set "ROOT=%ROOT:~0,-1%"
@@ -36,12 +38,13 @@ if "%MISSING%"=="1" (
 
 REM === Route command ===
 if "%COMMAND%"=="login"    goto cmd_login
+if "%COMMAND%"=="up"       goto cmd_up
 if "%COMMAND%"=="start"    goto cmd_start
 if "%COMMAND%"=="stop"     goto cmd_stop
 if "%COMMAND%"=="steer"    goto cmd_steer
 if "%COMMAND%"=="download" goto cmd_download
 if "%COMMAND%"=="status"   goto cmd_status
-if "%COMMAND%"=="delete"   goto cmd_delete
+if "%COMMAND%"=="down"     goto cmd_down
 goto cmd_help
 
 REM ──────────────────────────────────────────────
@@ -57,7 +60,20 @@ if defined ARG2 (
 az logout >nul 2>&1
 az login
 azd auth login >nul 2>&1
-echo   Logged in. Run 'aloop start' to deploy.
+echo   Logged in. Run 'aloop up' to deploy infrastructure.
+echo.
+exit /b 0
+
+REM ──────────────────────────────────────────────
+:cmd_up
+REM ──────────────────────────────────────────────
+echo.
+echo   Deploying aloop infrastructure to Azure...
+echo.
+call azd up
+if errorlevel 1 exit /b 1
+echo.
+echo   Infrastructure ready! Run 'aloop start' to begin a loop.
 echo.
 exit /b 0
 
@@ -145,17 +161,22 @@ if not errorlevel 1 (
     powershell -NoProfile -Command "(Get-Content '%STEERING%') -replace 'abort: true','abort: false' | Set-Content '%STEERING%'"
 )
 
-echo.
-echo   Deploying aloop to Azure...
-echo.
-call azd up
-if errorlevel 1 exit /b 1
+REM Check if infrastructure is deployed
+set "SA="
+for /f "usebackq delims=" %%V in (`azd env get-value AZURE_STORAGE_ACCOUNT_NAME 2^>nul`) do set "SA=%%V"
+if not defined SA (
+    echo.
+    echo   No infrastructure found. Deploying now...
+    echo.
+    call azd up
+    if errorlevel 1 exit /b 1
+)
 
 call :get_store
 if errorlevel 1 exit /b 1
 call :upload_blob "steering.md" "%STEERING%"
 echo.
-echo   Agent is running! Check progress with: aloop
+echo   Agent is running! Check progress with: aloop status
 echo.
 exit /b 0
 
@@ -276,7 +297,7 @@ del "%TMP%" 2>nul
 exit /b 0
 
 REM ──────────────────────────────────────────────
-:cmd_delete
+:cmd_down
 REM ──────────────────────────────────────────────
 echo.
 echo   This will permanently delete all aloop Azure resources.
@@ -339,7 +360,7 @@ if defined AZD_ENV (
 )
 
 echo.
-echo   All aloop resources deleted. Run 'aloop start' to deploy fresh.
+echo   All aloop resources deleted. Run 'aloop up' to deploy fresh.
 echo.
 exit /b 0
 
@@ -349,14 +370,19 @@ REM ─────────────────────────�
 echo.
 echo   aloop — Run your AI agent
 echo.
-echo   Usage:
-echo     aloop start      Deploy and start the agent
+echo   Infrastructure:
+echo     aloop up         Deploy infrastructure to Azure
+echo     aloop down       Tear down all Azure resources
+echo.
+echo   Loop control:
+echo     aloop start      Pick a loop type and start the agent
 echo     aloop stop       Stop the agent gracefully
 echo     aloop steer      Upload steering changes
 echo     aloop status     Check progress (default)
 echo     aloop download   Download finished artifacts
+echo.
+echo   Account:
 echo     aloop login      Switch Azure account (e.g. aloop login user@live.com)
-echo     aloop delete     Delete all Azure resources and clean up
 echo.
 echo   Quick start:
 echo     1. aloop start   (pick a loop type, deploys to Azure)
