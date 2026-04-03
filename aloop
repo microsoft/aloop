@@ -251,6 +251,70 @@ status)
     rm -f "$TMP"
     ;;
 
+delete)
+    echo ""
+    echo -e "  ${R}This will permanently delete all aloop Azure resources.${N}"
+    echo -e "  ${D}Resource group, storage, OpenAI, container app — everything.${N}"
+    echo ""
+    read -rp "  Are you sure? [y/N]: " CONFIRM
+    if [[ ! "$CONFIRM" =~ ^[Yy] ]]; then
+        echo -e "  ${D}Cancelled.${N}"
+        echo ""
+        exit 0
+    fi
+
+    # Get resource info from azd environment
+    RG=$(azd env get-value AZURE_RESOURCE_GROUP 2>/dev/null || true)
+    OPENAI_ENDPOINT=$(azd env get-value AZURE_OPENAI_ENDPOINT 2>/dev/null || true)
+    SUB=$(az account show --query id -o tsv 2>/dev/null || true)
+
+    if [ -z "$RG" ]; then
+        echo -e "  ${Y}No Azure environment found. Nothing to delete.${N}"
+        echo ""
+        exit 0
+    fi
+
+    # Extract OpenAI account name from endpoint (https://NAME.openai.azure.com/)
+    OPENAI_NAME=""
+    if [ -n "$OPENAI_ENDPOINT" ]; then
+        OPENAI_NAME=$(echo "$OPENAI_ENDPOINT" | sed -n 's|https://\([^.]*\)\.openai\.azure\.com.*|\1|p')
+    fi
+
+    # Get location before deleting
+    LOCATION=$(az group show -n "$RG" --query location -o tsv 2>/dev/null || true)
+
+    # Step 1: Delete the resource group
+    echo -e "  ${C}Deleting resource group: ${RG}...${N}"
+    az group delete -n "$RG" -y --no-wait 2>/dev/null || true
+    echo -e "  ${G}Resource group deletion started.${N}"
+
+    # Step 2: Wait briefly then purge soft-deleted OpenAI resource
+    if [ -n "$OPENAI_NAME" ] && [ -n "$LOCATION" ]; then
+        echo -e "  ${C}Waiting for resource group deletion to register...${N}"
+        sleep 10
+        echo -e "  ${C}Purging soft-deleted OpenAI resource: ${OPENAI_NAME}...${N}"
+        az cognitiveservices account purge \
+            --name "$OPENAI_NAME" \
+            --location "$LOCATION" \
+            --resource-group "$RG" \
+            --subscription "$SUB" 2>/dev/null || true
+        echo -e "  ${G}OpenAI resource purged.${N}"
+    fi
+
+    # Step 3: Clean up azd environment
+    AZD_ENV=$(azd env list --query "[?IsDefault].Name" -o tsv 2>/dev/null || true)
+    if [ -n "$AZD_ENV" ]; then
+        echo -e "  ${C}Removing azd environment: ${AZD_ENV}...${N}"
+        azd env delete "$AZD_ENV" --force --purge 2>/dev/null || \
+        azd env delete "$AZD_ENV" --force 2>/dev/null || true
+        echo -e "  ${G}Environment removed.${N}"
+    fi
+
+    echo ""
+    echo -e "  ${G}All aloop resources deleted. Run './aloop start' to deploy fresh.${N}"
+    echo ""
+    ;;
+
 *)
     echo ""
     echo -e "  ${C}aloop — Run your AI agent${N}"
@@ -262,6 +326,7 @@ status)
     echo "    aloop status     Check progress (default)"
     echo "    aloop download   Download finished artifacts"
     echo "    aloop login      Switch Azure account (e.g. aloop login user@live.com)"
+    echo "    aloop delete     Delete all Azure resources and clean up"
     echo ""
     echo "  Quick start:"
     echo "    1. aloop start   (pick a loop type, deploys to Azure)"

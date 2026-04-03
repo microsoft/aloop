@@ -58,6 +58,7 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 ./aloop status     # check progress (default command)
 ./aloop download   # pull finished artifacts to ./output/
 ./aloop login      # switch Azure account (e.g. ./aloop login user@live.com)
+./aloop delete     # delete all Azure resources and clean up
 ```
 
 Here's what `aloop` looks like when you check on a running loop:

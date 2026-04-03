@@ -41,6 +41,7 @@ if "%COMMAND%"=="stop"     goto cmd_stop
 if "%COMMAND%"=="steer"    goto cmd_steer
 if "%COMMAND%"=="download" goto cmd_download
 if "%COMMAND%"=="status"   goto cmd_status
+if "%COMMAND%"=="delete"   goto cmd_delete
 goto cmd_help
 
 REM ──────────────────────────────────────────────
@@ -273,6 +274,74 @@ del "%TMP%" 2>nul
 exit /b 0
 
 REM ──────────────────────────────────────────────
+:cmd_delete
+REM ──────────────────────────────────────────────
+echo.
+echo   This will permanently delete all aloop Azure resources.
+echo   Resource group, storage, OpenAI, container app — everything.
+echo.
+set "CONFIRM="
+set /p "CONFIRM=  Are you sure? [y/N]: "
+if /i not "%CONFIRM%"=="y" (
+    echo   Cancelled.
+    echo.
+    exit /b 0
+)
+
+REM Get resource info from azd environment
+set "RG="
+set "OPENAI_ENDPOINT="
+set "SUB="
+for /f "usebackq delims=" %%V in (`azd env get-value AZURE_RESOURCE_GROUP 2^>nul`) do set "RG=%%V"
+for /f "usebackq delims=" %%V in (`azd env get-value AZURE_OPENAI_ENDPOINT 2^>nul`) do set "OPENAI_ENDPOINT=%%V"
+for /f "usebackq delims=" %%V in (`az account show --query id -o tsv 2^>nul`) do set "SUB=%%V"
+
+if not defined RG (
+    echo   No Azure environment found. Nothing to delete.
+    echo.
+    exit /b 0
+)
+
+REM Extract OpenAI account name from endpoint
+set "OPENAI_NAME="
+if defined OPENAI_ENDPOINT (
+    for /f "usebackq delims=" %%V in (`python -c "import re; m=re.match(r'https://([^.]+)\.', '%OPENAI_ENDPOINT%'); print(m.group(1) if m else '')" 2^>nul`) do set "OPENAI_NAME=%%V"
+)
+
+REM Get location before deleting
+set "LOCATION="
+for /f "usebackq delims=" %%V in (`az group show -n "%RG%" --query location -o tsv 2^>nul`) do set "LOCATION=%%V"
+
+REM Step 1: Delete the resource group
+echo   Deleting resource group: %RG%...
+az group delete -n "%RG%" -y --no-wait >nul 2>&1
+echo   Resource group deletion started.
+
+REM Step 2: Purge soft-deleted OpenAI resource
+if defined OPENAI_NAME if defined LOCATION (
+    echo   Waiting for resource group deletion to register...
+    ping -n 11 127.0.0.1 >nul 2>&1
+    echo   Purging soft-deleted OpenAI resource: !OPENAI_NAME!...
+    az cognitiveservices account purge --name "!OPENAI_NAME!" --location "!LOCATION!" --resource-group "%RG%" --subscription "%SUB%" >nul 2>&1
+    echo   OpenAI resource purged.
+)
+
+REM Step 3: Clean up azd environment
+set "AZD_ENV="
+for /f "usebackq delims=" %%V in (`azd env list --query "[?IsDefault].Name" -o tsv 2^>nul`) do set "AZD_ENV=%%V"
+if defined AZD_ENV (
+    echo   Removing azd environment: !AZD_ENV!...
+    azd env delete "!AZD_ENV!" --force --purge >nul 2>&1
+    if errorlevel 1 azd env delete "!AZD_ENV!" --force >nul 2>&1
+    echo   Environment removed.
+)
+
+echo.
+echo   All aloop resources deleted. Run 'aloop start' to deploy fresh.
+echo.
+exit /b 0
+
+REM ──────────────────────────────────────────────
 :cmd_help
 REM ──────────────────────────────────────────────
 echo.
@@ -285,6 +354,7 @@ echo     aloop steer      Upload steering changes
 echo     aloop status     Check progress (default)
 echo     aloop download   Download finished artifacts
 echo     aloop login      Switch Azure account (e.g. aloop login user@live.com)
+echo     aloop delete     Delete all Azure resources and clean up
 echo.
 echo   Quick start:
 echo     1. aloop start   (pick a loop type, deploys to Azure)
