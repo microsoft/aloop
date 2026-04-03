@@ -113,24 +113,26 @@ if exist "!CHOSEN!\steering.md" (
             if "!USE_DEMO!"=="" set "USE_DEMO=Y"
             if /i "!USE_DEMO!"=="Y" (
                 copy "!CHOSEN!\demo.md" "%STEERING%" >nul
-                echo   Created steering.md from '!CNAME!' demo. Review it, then run 'aloop start' again.
+                echo   Created steering.md from '!CNAME!' demo.
             ) else (
                 copy "!CHOSEN!\steering.md" "%STEERING%" >nul
                 echo   Created steering.md from '!CNAME!' template. Fill in the [PLACEHOLDERS], then run 'aloop start' again.
+                echo.
+                exit /b 0
             )
             echo.
-            exit /b 0
+            goto :start_deploy
         )
     )
     copy "!CHOSEN!\steering.md" "%STEERING%" >nul
-    echo   Created steering.md from '!CNAME!'. Edit it, then run 'aloop start' again.
+    echo   Created steering.md from '!CNAME!'.
     echo.
-    exit /b 0
+    goto :start_deploy
 ) else if exist "!CHOSEN!\demo.md" (
     copy "!CHOSEN!\demo.md" "%STEERING%" >nul
-    echo   Created steering.md from '!CNAME!' demo. Review it, then run 'aloop start' again.
+    echo   Created steering.md from '!CNAME!' demo.
     echo.
-    exit /b 0
+    goto :start_deploy
 ) else (
     echo   No steering template found for '!CNAME!'.
     exit /b 1

@@ -114,24 +114,26 @@ start)
                     USE_DEMO=${USE_DEMO:-Y}
                     if [[ "$USE_DEMO" =~ ^[Yy] ]]; then
                         cp "$CHOSEN/demo.md" "$STEERING"
-                        echo -e "  ${G}Created steering.md from '$CNAME' demo. Review it, then run 'aloop start' again.${N}"
+                        echo -e "  ${G}Created steering.md from '$CNAME' demo.${N}"
                     else
                         cp "$CHOSEN/steering.md" "$STEERING"
-                        echo -e "  ${G}Created steering.md from '$CNAME' template. Fill in the [PLACEHOLDERS], then run 'aloop start' again.${N}"
+                        echo -e "  ${G}Created steering.md from '$CNAME' template. Fill in the [PLACEHOLDERS], then run './aloop start' again.${N}"
+                        echo ""
+                        exit 0
                     fi
                 else
                     cp "$CHOSEN/steering.md" "$STEERING"
-                    echo -e "  ${G}Created steering.md from '$CNAME'. Edit it, then run 'aloop start' again.${N}"
+                    echo -e "  ${G}Created steering.md from '$CNAME'.${N}"
                 fi
             elif [ -f "$CHOSEN/demo.md" ]; then
                 cp "$CHOSEN/demo.md" "$STEERING"
-                echo -e "  ${G}Created steering.md from '$CNAME' demo. Review it, then run 'aloop start' again.${N}"
+                echo -e "  ${G}Created steering.md from '$CNAME' demo.${N}"
             else
                 echo -e "  ${R}No steering template found for '$CNAME'.${N}"
                 exit 1
             fi
             echo ""
-            exit 0
+            # Continue to deploy (no exit — fall through to azd up)
         else
             echo -e "  ${R}No steering.md found. Create one with your goal and instructions.${N}"
             exit 1
