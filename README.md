@@ -18,7 +18,7 @@ cd aloop
 
 The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys the infrastructure, and starts the agent. No flags, no config files.
 
-> **Windows users**: The `aloop` CLI is a bash script. Run it in **Git Bash**, **WSL**, or via `bash ./aloop start` in PowerShell.
+> **Windows users**: Use `aloop start` in **cmd** or **PowerShell** (runs `aloop.cmd`). Alternatively, use `./aloop start` in **Git Bash** or **WSL**.
 
 ### Prerequisites
 
