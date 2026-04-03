@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "10630429695386716505"
+      "templateHash": "15927629856215911716"
     }
   },
   "parameters": {
@@ -516,7 +516,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "17806989981302219998"
+              "templateHash": "17283576912238094470"
             }
           },
           "parameters": {
@@ -673,6 +673,7 @@
                 "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('envName'))]",
                 "configuration": {
                   "activeRevisionsMode": "Single",
+                  "ingress": null,
                   "registries": [
                     {
                       "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('crName')), '2023-11-01-preview').loginServer]",
@@ -684,7 +685,7 @@
                   "containers": [
                     {
                       "name": "loop-agent",
-                      "image": "[format('{0}/loop-agent:latest', reference(resourceId('Microsoft.ContainerRegistry/registries', variables('crName')), '2023-11-01-preview').loginServer)]",
+                      "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
                       "resources": {
                         "cpu": "[json('1.0')]",
                         "memory": "2Gi"
@@ -794,6 +795,10 @@
     "AZURE_CONTAINER_APP_NAME": {
       "type": "string",
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'aca'), '2022-09-01').outputs.appName.value]"
+    },
+    "AZURE_CONTAINER_REGISTRY_ENDPOINT": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'aca'), '2022-09-01').outputs.registryServer.value]"
     },
     "AZURE_RESOURCE_GROUP": {
       "type": "string",

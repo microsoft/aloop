@@ -100,5 +100,6 @@ output AZURE_OPENAI_ENDPOINT string = openai.outputs.endpoint
 output AZURE_OPENAI_DEPLOYMENT string = openAiModelName
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 output AZURE_CONTAINER_APP_NAME string = aca.outputs.appName
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = aca.outputs.registryServer
 output AZURE_RESOURCE_GROUP string = rg.name
 output AZURE_MANAGED_IDENTITY_CLIENT_ID string = identity.outputs.clientId
