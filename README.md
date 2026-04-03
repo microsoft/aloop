@@ -13,19 +13,17 @@ You don't babysit it. You don't re-prompt. You walk away and let iteration do wh
 ```bash
 git clone https://github.com/microsoft/aloop
 cd aloop
-./aloop up        # deploy infrastructure to Azure
-./aloop start     # pick a loop type and start the agent
+./aloop start     # pick a loop type, deploy, and start the agent
 ```
 
-**PowerShell:**
+**Windows (PowerShell or cmd):**
 ```powershell
 git clone https://github.com/microsoft/aloop
 cd aloop
-.\aloop.ps1 up        # deploy infrastructure to Azure
-.\aloop.ps1 start     # pick a loop type and start the agent
+aloop.cmd start
 ```
 
-The CLI walks you through setup — `up` deploys infrastructure, `start` picks a loop type, offers a ready-to-run demo, and starts the agent. If you skip `up`, `start` will deploy automatically.
+The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys infrastructure if needed, and starts the agent.
 
 ### Prerequisites
 
@@ -58,7 +56,6 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 
 ## CLI Commands
 
-Bash / Git Bash / WSL:
 ```bash
 # Infrastructure
 ./aloop up         # deploy infrastructure to Azure
@@ -75,16 +72,7 @@ Bash / Git Bash / WSL:
 ./aloop login      # switch Azure account (e.g. ./aloop login user@live.com)
 ```
 
-PowerShell:
-```powershell
-.\aloop.ps1 up         # deploy infrastructure to Azure
-.\aloop.ps1 down       # tear down all Azure resources
-.\aloop.ps1 start      # pick a loop type and start the agent
-.\aloop.ps1 stop       # graceful shutdown
-.\aloop.ps1 steer      # upload revised instructions
-.\aloop.ps1 status     # check progress (default command)
-.\aloop.ps1 download   # pull finished artifacts to ./output/
-.\aloop.ps1 login      # switch Azure account
+> **Windows**: Replace `./aloop` with `aloop.cmd` in all commands above (e.g. `aloop.cmd start`).
 ```
 
 Here's what `aloop` looks like when you check on a running loop:
