@@ -34,6 +34,8 @@ Read steering.md → Plan → Execute → Evaluate (0-100) → Gate (keep or dis
 - **Fresh steering every iteration** — Enables humans to steer mid-run without restarting.
 - **Append-only iteration log** — `iteration_log.jsonl` is never overwritten, providing full history for debugging.
 - **Self-healing progress** — If `progress.json` is corrupt (JSON decode error), the agent resets to defaults and continues rather than crash-looping.
+- **Model cascade** — Different models per phase: cheap for planning (gpt-5.4-nano), mid-tier for execution (gpt-5.4-mini), strongest for evaluation (gpt-5.4). Configurable via `ALOOP_PLANNER_MODEL`, `ALOOP_EXECUTOR_MODEL`, `ALOOP_EVALUATOR_MODEL`.
+- **Structured failure learning** — Discarded iterations are logged to `failures.jsonl` with plan summary, hypothesis, score, and critique. The planner reads this every iteration and is explicitly told not to repeat failed approaches.
 
 ## File Structure
 
@@ -104,6 +106,7 @@ output/                     # Local download target for artifacts
 - `artifacts/*` — agent output (e.g., `artifacts/blog-post.md`)
 - `progress.json` — current state: scores array, best_score, total_iterations, status
 - `iteration_log.jsonl` — append-only log of every iteration
+- `failures.jsonl` — structured log of discarded iterations (plan, hypothesis, score, critique)
 - `reports/iteration_NNN.md` — detailed per-iteration reports
 - `reports/latest.md` — most recent report
 

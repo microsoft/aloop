@@ -19,6 +19,15 @@ param openAiEndpoint string
 @description('Azure OpenAI deployment name')
 param openAiDeployment string
 
+@description('Planner model override (empty = use openAiDeployment)')
+param plannerModel string = ''
+
+@description('Executor model override (empty = use openAiDeployment)')
+param executorModel string = ''
+
+@description('Evaluator model override (empty = use openAiDeployment)')
+param evaluatorModel string = ''
+
 @description('Storage account name')
 param storageAccountName string
 
@@ -120,6 +129,9 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'AZURE_CLIENT_ID', value: identityClientId }
             { name: 'AGENT_NAME', value: 'aloop' }
             { name: 'LOOP_INTERVAL_MINUTES', value: '10' }
+            { name: 'ALOOP_PLANNER_MODEL', value: !empty(plannerModel) ? plannerModel : openAiDeployment }
+            { name: 'ALOOP_EXECUTOR_MODEL', value: !empty(executorModel) ? executorModel : openAiDeployment }
+            { name: 'ALOOP_EVALUATOR_MODEL', value: !empty(evaluatorModel) ? evaluatorModel : openAiDeployment }
           ]
         }
       ]

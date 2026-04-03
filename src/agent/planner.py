@@ -32,6 +32,8 @@ Rules:
 - If this is the first iteration, focus on building a solid foundation.
 - If score is already high (>80), focus on polish and gap-filling.
 - Always include at least one verification step in the plan.
+- CRITICAL: Review the "Failed Approaches" section carefully. Do NOT repeat any
+  approach that already failed. Each plan must try something genuinely different.
 """
 
 
@@ -51,10 +53,12 @@ def create_plan(
     iteration_history: list[dict],
     current_best_score: int,
     iteration_number: int,
+    past_failures: list[dict] | None = None,
 ) -> IterationPlan:
     """Create an action plan for the next iteration."""
 
     history_summary = _summarize_history(iteration_history)
+    failures_summary = _summarize_failures(past_failures or [])
 
     prompt = f"""## Current State
 - Iteration: {iteration_number}
@@ -75,6 +79,9 @@ def create_plan(
 
 ## Past Iteration History
 {history_summary}
+
+## Failed Approaches (DO NOT REPEAT THESE)
+{failures_summary}
 
 Produce your JSON action plan for iteration {iteration_number}."""
 
@@ -97,6 +104,22 @@ def _summarize_history(history: list[dict]) -> str:
             f"score={entry.get('score', '?')}, "
             f"kept={entry.get('kept', '?')}, "
             f"critique: {entry.get('self_critique', 'n/a')[:200]}"
+        )
+    return "\n".join(lines)
+
+
+def _summarize_failures(failures: list[dict]) -> str:
+    """Summarize past failed approaches so the planner avoids repeating them."""
+    if not failures:
+        return "No recorded failures yet."
+
+    lines = []
+    for entry in failures[-15:]:  # Last 15 failures
+        lines.append(
+            f"- Iteration {entry.get('iteration', '?')} "
+            f"(score {entry.get('score', '?')} vs best {entry.get('best_at_time', '?')}): "
+            f"Tried: \"{entry.get('plan_summary', 'n/a')[:150]}\" — "
+            f"Why it failed: {entry.get('self_critique', 'n/a')[:200]}"
         )
     return "\n".join(lines)
 

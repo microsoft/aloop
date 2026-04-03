@@ -43,12 +43,14 @@ def call_model(
     tools: list[dict] | None = None,
     tool_executor: Any = None,
     max_tool_rounds: int = 15,
+    model: str = "",
 ) -> str:
     """Call the model using the Responses API with optional tool use loop.
 
     Uses the OpenAI Responses API (client.responses.create) which supports
     built-in tools and multi-turn tool use natively.
     """
+    deployment = model or Config.AZURE_OPENAI_DEPLOYMENT
     input_messages = [
         {"role": "system", "content": instructions},
         {"role": "user", "content": prompt},
@@ -57,7 +59,7 @@ def call_model(
     if not tools:
         # Simple call without tools
         response = client.responses.create(
-            model=Config.AZURE_OPENAI_DEPLOYMENT,
+            model=deployment,
             input=input_messages,
         )
         return _extract_text(response)
@@ -65,7 +67,7 @@ def call_model(
     # Tool-use loop using Responses API
     for round_num in range(max_tool_rounds):
         response = client.responses.create(
-            model=Config.AZURE_OPENAI_DEPLOYMENT,
+            model=deployment,
             input=input_messages,
             tools=tools,
         )
@@ -102,7 +104,7 @@ def call_model(
 
     # Hit max rounds — get whatever the model has
     response = client.responses.create(
-        model=Config.AZURE_OPENAI_DEPLOYMENT,
+        model=deployment,
         input=input_messages,
     )
     return _extract_text(response)

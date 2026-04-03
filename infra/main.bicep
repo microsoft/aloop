@@ -18,6 +18,15 @@ param openAiModelVersion string = '2026-03-17'
 @description('The initial steering.md content to upload')
 param steeringContent string = ''
 
+@description('Model for the planner phase (leave empty to use openAiModelName)')
+param plannerModel string = ''
+
+@description('Model for the executor phase (leave empty to use openAiModelName)')
+param executorModel string = ''
+
+@description('Model for the evaluator phase (leave empty to use openAiModelName)')
+param evaluatorModel string = ''
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
@@ -79,6 +88,9 @@ module aca './modules/aca.bicep' = {
     identityClientId: identity.outputs.clientId
     openAiEndpoint: openai.outputs.endpoint
     openAiDeployment: openAiModelName
+    plannerModel: plannerModel
+    executorModel: executorModel
+    evaluatorModel: evaluatorModel
     storageAccountName: storage.outputs.name
   }
 }

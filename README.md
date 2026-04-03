@@ -246,14 +246,33 @@ These are read fresh every iteration, so you can change them mid-run with `aloop
 
 ### Changing the model
 
-The model is set at deploy time via the `azd` environment:
+aloop uses a **model cascade** — different models for each phase of the loop, optimizing cost and quality:
+
+| Phase | Default Model | Env Variable | Why |
+|-------|--------------|--------------|-----|
+| Planner | `gpt-5.4-nano` | `ALOOP_PLANNER_MODEL` | Planning is structured — cheap models handle it well |
+| Executor | `gpt-5.4-mini` | `ALOOP_EXECUTOR_MODEL` | Execution needs tool-calling ability, mid-tier is enough |
+| Evaluator | `gpt-5.4` | `ALOOP_EVALUATOR_MODEL` | Honest scoring needs the strongest model |
+
+Override any phase independently:
 
 ```bash
-azd env set AZURE_OPENAI_DEPLOYMENT gpt-4o
-aloop start
+azd env set ALOOP_PLANNER_MODEL gpt-5.4-mini
+azd env set ALOOP_EXECUTOR_MODEL gpt-5.4
+azd env set ALOOP_EVALUATOR_MODEL gpt-5.4
 ```
 
-To change the model on a running deployment, update the environment variable and redeploy with `azd up`.
+Or set all three to the same model with the base deployment variable:
+
+```bash
+azd env set AZURE_OPENAI_DEPLOYMENT gpt-5.4-mini
+```
+
+To change models on a running deployment, update the environment variables and redeploy with `azd up`.
+
+### Failure learning
+
+aloop maintains a `failures.jsonl` log — every discarded iteration records what was tried, why it failed, and what the evaluator suggested. The planner reads this every iteration and is explicitly instructed not to repeat failed approaches. This prevents the agent from churning on the same bad idea.
 
 ### Running multiple loops in parallel
 

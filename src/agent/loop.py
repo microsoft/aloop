@@ -36,7 +36,9 @@ def main() -> None:
     """Entry point — run the autonomous agent loop."""
     logger.info("=" * 60)
     logger.info(f"  aloop starting — {Config.AGENT_NAME}")
-    logger.info(f"  Model: {Config.AZURE_OPENAI_DEPLOYMENT}")
+    logger.info(f"  Planner model:   {Config.PLANNER_MODEL}")
+    logger.info(f"  Executor model:  {Config.EXECUTOR_MODEL}")
+    logger.info(f"  Evaluator model: {Config.EVALUATOR_MODEL}")
     logger.info(f"  Mode: {'LOCAL' if Config.LOCAL_MODE else 'AZURE'}")
     logger.info("=" * 60)
 
@@ -52,9 +54,10 @@ def main() -> None:
     init_tools(storage)
     client = create_client()
 
-    # Create bound model call functions
-    call_model_simple = partial(call_model, client)
-    call_model_with_tools = partial(call_model, client)
+    # Create bound model call functions — one per phase (model cascade)
+    call_planner = partial(call_model, client, model=Config.PLANNER_MODEL)
+    call_executor = partial(call_model, client, model=Config.EXECUTOR_MODEL)
+    call_evaluator = partial(call_model, client, model=Config.EVALUATOR_MODEL)
 
     # Load or initialize progress
     progress = _load_progress(storage)
@@ -104,13 +107,15 @@ def main() -> None:
             # ── Phase 1: PLAN ──
             logger.info("[PHASE 1] Planning...")
             history = _load_iteration_log(storage)
+            failures = _load_failures(storage)
 
             plan = create_plan(
-                call_model_fn=call_model_simple,
+                call_model_fn=call_planner,
                 steering=steering,
                 iteration_history=history,
                 current_best_score=best_score,
                 iteration_number=iteration,
+                past_failures=failures,
             )
             logger.info(f"  Goal: {plan.measurable_goal[:120]}")
             logger.info(f"  Steps: {len(plan.action_plan)}")
@@ -123,7 +128,7 @@ def main() -> None:
             best_artifact_content = storage.read("artifacts/blog-post.md") or ""
 
             execution_summary = execute_plan(
-                call_model_with_tools_fn=call_model_with_tools,
+                call_model_with_tools_fn=call_executor,
                 plan=plan,
                 steering=steering,
                 iteration_number=iteration,
@@ -151,7 +156,7 @@ def main() -> None:
                     artifact_samples += f"\n--- {f} ---\n{content[:5000]}\n"
 
             evaluation = evaluate_output(
-                call_model_fn=call_model_simple,
+                call_model_fn=call_evaluator,
                 plan=plan,
                 steering=steering,
                 execution_summary=execution_summary,
@@ -173,6 +178,19 @@ def main() -> None:
                 logger.info(
                     f"  [DISCARDED] Score {evaluation.score} < best {best_score}. "
                     f"Learning from failure."
+                )
+                # Record structured failure so planner avoids repeating it
+                failure_entry = {
+                    "iteration": iteration,
+                    "plan_summary": plan.measurable_goal,
+                    "hypothesis": plan.hypothesis,
+                    "score": evaluation.score,
+                    "best_at_time": best_score,
+                    "self_critique": evaluation.self_critique,
+                    "suggestions": evaluation.suggestions[:3],
+                }
+                storage.append(
+                    "failures.jsonl", json.dumps(failure_entry) + "\n"
                 )
 
             # ── Phase 5: LOG ──
@@ -264,6 +282,20 @@ def _save_progress(storage: Storage, progress: dict) -> None:
 
 def _load_iteration_log(storage: Storage) -> list[dict]:
     raw = storage.read("iteration_log.jsonl")
+    if not raw:
+        return []
+    entries = []
+    for line in raw.strip().split("\n"):
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return entries
+
+
+def _load_failures(storage: Storage) -> list[dict]:
+    """Load structured failure log for the planner to avoid repeating mistakes."""
+    raw = storage.read("failures.jsonl")
     if not raw:
         return []
     entries = []

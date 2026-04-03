@@ -15,6 +15,17 @@ class Config:
         "AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-mini"
     )
 
+    # Per-phase model overrides (model cascade)
+    PLANNER_MODEL: str = os.environ.get(
+        "ALOOP_PLANNER_MODEL", os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-nano")
+    )
+    EXECUTOR_MODEL: str = os.environ.get(
+        "ALOOP_EXECUTOR_MODEL", os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-mini")
+    )
+    EVALUATOR_MODEL: str = os.environ.get(
+        "ALOOP_EVALUATOR_MODEL", os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-5.4")
+    )
+
     # Azure Blob Storage
     AZURE_STORAGE_ACCOUNT_NAME: str = os.environ.get(
         "AZURE_STORAGE_ACCOUNT_NAME", ""
