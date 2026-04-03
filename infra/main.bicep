@@ -10,10 +10,10 @@ param environmentName string
 param location string
 
 @description('Name of the Azure OpenAI model deployment')
-param openAiModelName string = 'gpt-5.3-chat'
+param openAiModelName string = 'gpt-5.4-mini'
 
 @description('Version of the OpenAI model')
-param openAiModelVersion string = '2026-03-03'
+param openAiModelVersion string = '2026-03-17'
 
 @description('The initial steering.md content to upload')
 param steeringContent string = ''

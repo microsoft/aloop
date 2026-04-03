@@ -12,7 +12,7 @@ class Config:
         "AZURE_OPENAI_API_VERSION", "2025-03-01-preview"
     )
     AZURE_OPENAI_DEPLOYMENT: str = os.environ.get(
-        "AZURE_OPENAI_DEPLOYMENT", "gpt-5.3-chat"
+        "AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-mini"
     )
 
     # Azure Blob Storage
