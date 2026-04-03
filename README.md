@@ -281,32 +281,34 @@ Each `azd` environment is an independent deployment with its own storage, comput
 ```bash
 # Loop 1: blog writer
 azd env new blog-loop
-aloop start                    # picks blog-writer, deploys to blog-loop
+./aloop start                    # picks blog-writer, deploys to blog-loop
 
 # Loop 2: deep research (in a separate terminal)
 azd env new research-loop
 azd env select research-loop
-aloop start                    # picks deep-research, deploys to research-loop
+./aloop start                    # picks deep-research, deploys to research-loop
 ```
 
 Each loop gets its own Azure Container App, storage account, and blob container. They run independently and don't interfere with each other. Check on any loop by selecting its environment first:
 
 ```bash
 azd env select blog-loop
-aloop status
+./aloop status
 
 azd env select research-loop
-aloop download
+./aloop download
 ```
 
 ## Troubleshooting
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| `'aloop' is not recognized` on Windows | The bash script can't run in cmd/PowerShell | Use `aloop.cmd start` (or just `aloop start` if `.cmd` is in your PATHEXT), or switch to Git Bash / WSL and run `./aloop start` |
+| `'aloop' is not recognized` on Windows | The bash script can't run in cmd/PowerShell | Use `aloop.cmd start` in cmd, or `./aloop start` in Git Bash / WSL |
 | `'python' is not recognized` during `aloop status` | Python isn't on PATH | Install [Python 3](https://www.python.org/downloads/) and check "Add to PATH" during setup. On macOS/Linux the script uses `python3` |
-| `No Azure environment found` | Haven't deployed yet | Run `aloop start` first to deploy infrastructure |
+| `No Azure environment found` | Haven't deployed yet | Run `./aloop start` first to deploy infrastructure |
 | `azd` or `az` not found | CLI tools not installed | Install [azd](https://aka.ms/azd-install) and [az](https://aka.ms/install-azure-cli) |
+| `does not have permission to create role assignments` | Your account lacks Owner/User Access Administrator on the subscription | Ask a subscription admin for **Owner** role, or use a subscription where you have Owner. See [Architecture](#architecture) for why role assignments are needed (passwordless auth) |
+| Need to deploy under a different Azure account | Logged into the wrong account | Run `./aloop login user@example.com` to switch accounts before deploying |
 
 ## License
 
