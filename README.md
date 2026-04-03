@@ -25,7 +25,9 @@ The CLI walks you through setup — picks a loop type, offers a ready-to-run dem
 - [Azure Developer CLI (`azd`)](https://aka.ms/azd-install)
 - [Azure CLI (`az`)](https://aka.ms/install-azure-cli)
 - [Azure subscription](https://azure.microsoft.com/free)
-- A bash-compatible shell (macOS/Linux terminal, [Git Bash](https://git-scm.com/downloads/win), or [WSL](https://learn.microsoft.com/windows/wsl/install) on Windows)
+- [Python 3](https://www.python.org/downloads/) (used by `aloop status` to parse progress data)
+- **macOS/Linux**: A bash-compatible shell (default terminal works)
+- **Windows**: Use `aloop.cmd` in cmd/PowerShell, or `./aloop` in [Git Bash](https://git-scm.com/downloads/win) / [WSL](https://learn.microsoft.com/windows/wsl/install)
 
 Don't have these installed? `aloop` checks automatically and shows install links.
 
@@ -277,6 +279,15 @@ aloop status
 azd env select research-loop
 aloop download
 ```
+
+## Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| `'aloop' is not recognized` on Windows | The bash script can't run in cmd/PowerShell | Use `aloop.cmd start` (or just `aloop start` if `.cmd` is in your PATHEXT), or switch to Git Bash / WSL and run `./aloop start` |
+| `'python' is not recognized` during `aloop status` | Python isn't on PATH | Install [Python 3](https://www.python.org/downloads/) and check "Add to PATH" during setup. On macOS/Linux the script uses `python3` |
+| `No Azure environment found` | Haven't deployed yet | Run `aloop start` first to deploy infrastructure |
+| `azd` or `az` not found | CLI tools not installed | Install [azd](https://aka.ms/azd-install) and [az](https://aka.ms/install-azure-cli) |
 
 ## License
 
