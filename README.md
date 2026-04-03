@@ -20,7 +20,7 @@ cd aloop
 ```powershell
 git clone https://github.com/microsoft/aloop
 cd aloop
-aloop.cmd start
+.\aloop.cmd start
 ```
 
 The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys infrastructure if needed, and starts the agent.
@@ -72,7 +72,7 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 ./aloop login      # switch Azure account (e.g. ./aloop login user@live.com)
 ```
 
-> **Windows**: Replace `./aloop` with `aloop.cmd` in all commands above (e.g. `aloop.cmd start`).
+> **Windows**: Replace `./aloop` with `.\aloop.cmd` in all commands above (e.g. `.\aloop.cmd start`).
 ```
 
 Here's what `aloop` looks like when you check on a running loop:

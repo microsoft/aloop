@@ -81,7 +81,12 @@ REM ─────────────────────────�
 :cmd_start
 REM ──────────────────────────────────────────────
 set "STEERING=%ROOT%\steering.md"
-if exist "%STEERING%" goto :start_deploy
+REM Check if steering.md exists AND is not the default template
+if exist "%STEERING%" (
+    findstr /c:"Describe what you want the agent to achieve" "%STEERING%" >nul 2>&1
+    if errorlevel 1 goto :start_deploy
+    REM It's the default template — show loop picker
+)
 
 REM No steering.md — offer loop type picker
 if not exist "%ROOT%\loops" (

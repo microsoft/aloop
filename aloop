@@ -92,7 +92,8 @@ up)
 
 start)
     STEERING="$ROOT/steering.md"
-    if [ ! -f "$STEERING" ]; then
+    # Show loop picker if no steering.md, or if it's the default template
+    if [ ! -f "$STEERING" ] || [ ! -s "$STEERING" ] || grep -q 'Describe what you want the agent to achieve' "$STEERING" 2>/dev/null; then
         LOOPDIR="$ROOT/loops"
         if [ -d "$LOOPDIR" ]; then
             echo ""
