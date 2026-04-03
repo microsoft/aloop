@@ -19,7 +19,7 @@ cd aloop
 
 The CLI walks you through setup — `up` deploys infrastructure, `start` picks a loop type, offers a ready-to-run demo, and starts the agent. If you skip `up`, `start` will deploy automatically.
 
-> **Windows users**: Use `aloop start` in **cmd** or `aloop.cmd start` in **PowerShell**. Alternatively, use `./aloop start` in **Git Bash** or **WSL**.
+> **Windows users**: Use `.\aloop.ps1 start` in **PowerShell**, `aloop start` in **cmd**, or `./aloop start` in **Git Bash** / **WSL**.
 
 ### Prerequisites
 
