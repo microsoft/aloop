@@ -13,16 +13,19 @@ You don't babysit it. You don't re-prompt. You walk away and let iteration do wh
 ```bash
 git clone https://github.com/microsoft/aloop
 cd aloop
-aloop start
+./aloop start
 ```
 
 The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys the infrastructure, and starts the agent. No flags, no config files.
+
+> **Windows users**: The `aloop` CLI is a bash script. Run it in **Git Bash**, **WSL**, or via `bash ./aloop start` in PowerShell.
 
 ### Prerequisites
 
 - [Azure Developer CLI (`azd`)](https://aka.ms/azd-install)
 - [Azure CLI (`az`)](https://aka.ms/install-azure-cli)
 - [Azure subscription](https://azure.microsoft.com/free)
+- A bash-compatible shell (macOS/Linux terminal, [Git Bash](https://git-scm.com/downloads/win), or [WSL](https://learn.microsoft.com/windows/wsl/install) on Windows)
 
 Don't have these installed? `aloop` checks automatically and shows install links.
 
