@@ -104,6 +104,7 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
     managedEnvironmentId: acaEnv.id
     configuration: {
       activeRevisionsMode: 'Single'
+      ingress: null
       registries: [
         {
           server: containerRegistry.properties.loginServer
@@ -115,7 +116,9 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'loop-agent'
-          image: '${containerRegistry.properties.loginServer}/loop-agent:latest'
+          // Placeholder for first deploy — azd deploy replaces this with
+          // the real image from ACR after building and pushing it.
+          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
           resources: {
             cpu: json('1.0')
             memory: '2Gi'
