@@ -18,7 +18,7 @@ cd aloop
 
 The CLI walks you through setup — picks a loop type, offers a ready-to-run demo, deploys the infrastructure, and starts the agent. No flags, no config files.
 
-> **Windows users**: Use `aloop start` in **cmd** or **PowerShell** (runs `aloop.cmd`). Alternatively, use `./aloop start` in **Git Bash** or **WSL**.
+> **Windows users**: Use `aloop start` in **cmd** or `aloop.cmd start` in **PowerShell**. Alternatively, use `./aloop start` in **Git Bash** or **WSL**.
 
 ### Prerequisites
 
@@ -52,12 +52,12 @@ Then it sleeps and does it again. The best artifact survives. Everything else is
 ## CLI Commands
 
 ```bash
-aloop start      # deploy and start the agent
-aloop steer      # upload revised instructions to running agent
-aloop stop       # graceful shutdown
-aloop status     # check progress (default command)
-aloop download   # pull finished artifacts to ./output/
-aloop            # same as status
+./aloop start      # deploy and start the agent
+./aloop steer      # upload revised instructions to running agent
+./aloop stop       # graceful shutdown
+./aloop status     # check progress (default command)
+./aloop download   # pull finished artifacts to ./output/
+./aloop login      # switch Azure account (e.g. ./aloop login user@live.com)
 ```
 
 Here's what `aloop` looks like when you check on a running loop:

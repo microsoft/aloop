@@ -5,27 +5,11 @@
 #        aloop steer      Upload steering.md changes
 #        aloop status     Check progress (default)
 #        aloop download   Download finished artifacts
-#        --account EMAIL  Switch Azure login before running command
+#        aloop login     Switch Azure account (e.g. aloop login user@live.com)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-
-# Parse --account flag (can appear anywhere)
-ACCOUNT=""
-ARGS=()
-for arg in "$@"; do
-    if [[ "$arg" == --account=* ]]; then
-        ACCOUNT="${arg#--account=}"
-    elif [ -n "${EXPECT_ACCOUNT:-}" ]; then
-        ACCOUNT="$arg"
-        unset EXPECT_ACCOUNT
-    elif [ "$arg" = "--account" ]; then
-        EXPECT_ACCOUNT=1
-    else
-        ARGS+=("$arg")
-    fi
-done
-COMMAND="${ARGS[0]:-status}"
+COMMAND="${1:-status}"
 
 C='\033[36m'   # cyan
 G='\033[32m'   # green
@@ -73,19 +57,26 @@ download_blob() {
 
 check_prereqs
 
-# Switch account if requested
-if [ -n "$ACCOUNT" ]; then
-    echo ""
-    echo -e "  ${C}Switching to account: ${ACCOUNT}${N}"
-    echo -e "  ${D}Sign in as ${ACCOUNT} in the browser window that opens.${N}"
-    az logout 2>/dev/null || true
-    az login
-    azd auth login 2>/dev/null || true
-    echo -e "  ${G}Logged in.${N}"
-    echo ""
-fi
-
 case "$COMMAND" in
+
+login)
+    ACCOUNT="${2:-}"
+    if [ -z "$ACCOUNT" ]; then
+        echo ""
+        echo -e "  ${C}Logging into Azure...${N}"
+        az logout 2>/dev/null || true
+        az login
+    else
+        echo ""
+        echo -e "  ${C}Switching to account: ${ACCOUNT}${N}"
+        echo -e "  ${D}Sign in as ${ACCOUNT} in the browser window that opens.${N}"
+        az logout 2>/dev/null || true
+        az login
+    fi
+    azd auth login 2>/dev/null || true
+    echo -e "  ${G}Logged in. Run './aloop start' to deploy.${N}"
+    echo ""
+    ;;
 
 start)
     STEERING="$ROOT/steering.md"
@@ -270,9 +261,7 @@ status)
     echo "    aloop steer      Upload steering changes"
     echo "    aloop status     Check progress (default)"
     echo "    aloop download   Download finished artifacts"
-    echo ""
-    echo "  Options:"
-    echo "    --account EMAIL  Switch Azure login (e.g. aloop start --account user@live.com)"
+    echo "    aloop login      Switch Azure account (e.g. aloop login user@live.com)"
     echo ""
     echo "  Quick start:"
     echo "    1. aloop start   (pick a loop type, deploys to Azure)"
