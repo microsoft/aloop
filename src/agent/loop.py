@@ -68,13 +68,7 @@ def main() -> None:
 
     # ==================== THE LOOP ====================
     while True:
-        iteration += 1
         loop_start = datetime.now(timezone.utc)
-
-        logger.info("")
-        logger.info("=" * 60)
-        logger.info(f"  ITERATION {iteration}")
-        logger.info("=" * 60)
 
         try:  # Wrap entire iteration so transient failures don't crash the agent
 
@@ -86,6 +80,14 @@ def main() -> None:
                 logger.info("Waiting 60s then retrying...")
                 time.sleep(60)
                 continue
+
+            # Only count as an iteration once steering.md is found
+            iteration += 1
+
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info(f"  ITERATION {iteration}")
+            logger.info("=" * 60)
 
             steering = parse_steering(steering_raw)
 

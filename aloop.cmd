@@ -181,8 +181,15 @@ call :get_store
 if errorlevel 1 exit /b 1
 echo   Uploading steering.md...
 call :upload_blob "steering.md" "%STEERING%"
+if errorlevel 1 (
+    echo.
+    echo   ERROR: Failed to upload steering.md. Check your Azure login.
+    echo   Run '.\aloop.cmd login' to sign in to the correct account.
+    echo.
+    exit /b 1
+)
 echo.
-echo   Agent is running! Check progress with: aloop.cmd status
+echo   Agent is running! Check progress with: .\aloop.cmd status
 echo.
 exit /b 0
 
@@ -406,17 +413,27 @@ REM ─────────────────────────�
 :get_store
 for /f "usebackq delims=" %%V in (`azd env get-value AZURE_STORAGE_ACCOUNT_NAME 2^>nul`) do set "SA=%%V"
 if not defined SA (
-    echo   No Azure environment found. Run 'aloop start' first.
+    echo   No Azure environment found. Run '.\aloop.cmd up' first.
     exit /b 1
+)
+REM Set the correct subscription context for az commands
+set "_SUB="
+for /f "usebackq delims=" %%V in (`azd env get-value AZURE_SUBSCRIPTION_ID 2^>nul`) do set "_SUB=%%V"
+if defined _SUB (
+    az account set --subscription "%_SUB%" 2>nul
+    if errorlevel 1 (
+        echo   Cannot access subscription %_SUB%. Run '.\aloop.cmd login' to sign in with the correct account.
+        exit /b 1
+    )
 )
 exit /b 0
 
 :upload_blob
 az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul
-if errorlevel 1 (
-    az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
-)
-exit /b 0
+if not errorlevel 1 exit /b 0
+az storage blob upload --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode key --only-show-errors 2>nul
+if not errorlevel 1 exit /b 0
+exit /b 1
 
 :download_blob
 az storage blob download --account-name "%SA%" -c agent-workspace -n "%~1" --file "%~2" --overwrite --auth-mode login --only-show-errors 2>nul

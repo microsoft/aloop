@@ -42,8 +42,17 @@ check_prereqs() {
 get_store() {
     SA=$(azd env get-value AZURE_STORAGE_ACCOUNT_NAME 2>/dev/null || true)
     if [ -z "$SA" ]; then
-        echo -e "  ${R}No Azure environment found. Run 'aloop start' first.${N}"
+        echo -e "  ${R}No Azure environment found. Run './aloop up' first.${N}"
         exit 1
+    fi
+    # Set the correct subscription context for az commands
+    local SUB
+    SUB=$(azd env get-value AZURE_SUBSCRIPTION_ID 2>/dev/null || true)
+    if [ -n "$SUB" ]; then
+        az account set --subscription "$SUB" 2>/dev/null || {
+            echo -e "  ${R}Cannot access subscription $SUB. Run './aloop login' to sign in with the correct account.${N}"
+            exit 1
+        }
     fi
 }
 
@@ -168,7 +177,14 @@ start)
     fi
 
     get_store
-    upload_blob "steering.md" "$STEERING" >/dev/null
+    echo -e "  ${C}Uploading steering.md...${N}"
+    if ! upload_blob "steering.md" "$STEERING"; then
+        echo ""
+        echo -e "  ${R}ERROR: Failed to upload steering.md. Check your Azure login.${N}"
+        echo -e "  ${D}Run './aloop login' to sign in to the correct account.${N}"
+        echo ""
+        exit 1
+    fi
     echo ""
     echo -e "  ${G}Agent is running! Check progress with: ./aloop status${N}"
     echo ""
