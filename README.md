@@ -241,7 +241,7 @@ loops/                      # 10 loop types, each with template + demo
 
 - [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — keep-or-discard gating
 - [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) — single agent with good tools
-- [Ralph Loop](https://en.wikipedia.org/wiki/OODA_loop) — self-referential iteration
+- [Ralph Loop](https://ralph-wiggum.ai/) — self-referential iteration
 
 ## Advanced
 

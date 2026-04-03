@@ -21,7 +21,7 @@ and where it falls short.
 - [ ] Impact analysis: how Anthropic's patterns influenced OpenAI's Responses API and others
 - [ ] Strengths/weaknesses comparison matrix across 4+ SDKs
 - [ ] Clear, opinionated recommendations for SDK teams at each provider
-- [ ] Sources cited with links
+- [ ] Sources cited as clickable markdown hyperlinks (NOT shorthand tags like [A1])
 - [ ] 3000-6000 words
 - Score target: 90/100
 
@@ -42,6 +42,11 @@ and where it falls short.
 - Assess tool_use design vs OpenAI function calling vs Azure extensions.
 - Note enterprise gaps honestly — auth, compliance, regional availability.
 - DO NOT RAMBLE. Cut any analysis that doesn't lead to a recommendation.
+- CITATION FORMAT: Every source must be a clickable markdown link.
+  Use inline links like [Source Name](https://example.com/page) or a
+  numbered reference list at the end with full URLs:
+  [1]: https://example.com/page — Description
+  NEVER use shorthand tags like [A1] or [B2] without a corresponding URL.
 
 ## Loop Settings
 - interval_minutes: 12

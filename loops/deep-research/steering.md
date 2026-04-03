@@ -17,7 +17,7 @@ developer experience, ecosystem maturity, and production readiness.
 - [ ] Strengths/weaknesses comparison matrix
 - [ ] Clear, opinionated recommendations for specific scenarios
 - [ ] "Which should I use?" decision tree
-- [ ] Sources cited with links
+- [ ] Sources cited as clickable markdown hyperlinks (NOT shorthand tags like [A1])
 - [ ] 3000-6000 words
 - Score target: 90/100
 
@@ -36,6 +36,11 @@ developer experience, ecosystem maturity, and production readiness.
 - Every comparison dimension needs a winner. Don't hedge everything.
 - DO NOT RAMBLE. Long doesn't mean thorough. Cut any analysis that doesn't
   lead to a recommendation.
+- CITATION FORMAT: Every source must be a clickable markdown link.
+  Use inline links like [Source Name](https://example.com/page) or a
+  numbered reference list at the end with full URLs:
+  [1]: https://example.com/page — Description
+  NEVER use shorthand tags like [A1] or [B2] without a corresponding URL.
 
 ## Loop Settings
 - interval_minutes: 12
